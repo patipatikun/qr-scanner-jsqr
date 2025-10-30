@@ -16,6 +16,7 @@
       color: white;
       padding: 10px;
     }
+    /* スキャナーを横並びにする Flexbox コンテナ */
     .scanner-container {
       display: flex;
       justify-content: space-around;
@@ -33,7 +34,6 @@
     }
     /* スキャナー表示エリア */
     #scanner-dqr, #scanner-productqr {
-      /* カメラの映像とキャンバスがここに入ります */
       min-height: 250px; 
       display: flex;
       justify-content: center;
@@ -47,6 +47,17 @@
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
+    }
+
+    /* 照準枠のスタイル */
+    .aimer {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: 2px dashed red; /* 赤い破線枠 */
+        box-sizing: border-box;
+        z-index: 10;
     }
 
     /* 結果とボタンのスタイル */
@@ -89,15 +100,11 @@
       cursor: not-allowed;
     }
     
-    /* 照準枠のスタイル */
-    .aimer {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        border: 2px dashed red; /* 照準枠の色 */
-        box-sizing: border-box;
-        z-index: 10;
+    /* ボタンエリアを横並びにする (flex-wrap: wrap はモバイル対応) */
+    #button-area {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap; 
     }
 
     /* モバイル対応 */
@@ -130,8 +137,10 @@
     </div>
   </div>
 
-  <button id="start-scan-1">📷 1回目カメラ起動</button>
-  <button id="start-scan-2" style="display:none;">📷 2回目カメラ起動</button>
+  <div id="button-area">
+    <button id="start-scan-1">📷 1回目カメラ起動</button>
+    <button id="start-scan-2" style="display:none;">📷 2回目カメラ起動</button>
+  </div>
 
   <div id="result">QRをスキャンしてください</div>
 
