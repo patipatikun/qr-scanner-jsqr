@@ -280,7 +280,7 @@ function checkMatch() {
     resultBox.className = "";
 
     if (dqr && productqr) {
-        fetch("https://script.google.com/macros/s/AKfycbyf-ennOCsvr997hAWKl0VjJvtzCOpKPzsRdp3_7R-KfT9VpedpppRJnEoROD1k3KEE1w/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbx-o6W-5wRmFMXPrabkRzzNSDoXJ1o9SX4LoMtEAY__8nlzknpcGLyHQz40y3cbN9nZSQ/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `dp=${encodeURIComponent(dqr)}&productQr=${encodeURIComponent(productqr)}`
