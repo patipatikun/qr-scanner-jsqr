@@ -10,8 +10,7 @@ const btnStart1 = document.getElementById("start-scan-1");
 const btnStart2 = document.getElementById("start-scan-2");
 
 const state = {
-    // 状態管理をシンプル化: 'ready', 'scanning_1', 'scanning_2', 'done'
-    current: "ready", 
+    current: "ready", // 'ready', 'scanning_1', 'scanning_2', 'done'
     left: { video: null, canvas: null, stream: null, requestId: null },
     right: { video: null, canvas: null, stream: null, requestId: null },
     aimerSize: 150 
@@ -31,12 +30,18 @@ function displayQrText(scannerId, text) {
     const stateKey = scannerId === SCANNER_ID_LEFT ? 'left' : 'right';
     if(state[stateKey].video) {
         state[stateKey].video.style.display = 'none';
+        
+        // 念のため、エイマーも非表示にする
+        const aimer = el.querySelector('.aimer');
+        if (aimer) aimer.style.display = 'none';
     }
     
-    // 待機メッセージを削除 (HTML要素にしたため)
-    const waitMessage = document.getElementById('wait-message-2');
-    if (waitMessage) {
-        waitMessage.remove(); 
+    // 待機メッセージが残っている可能性のある2回目エリアに対して処理
+    if (scannerId === SCANNER_ID_RIGHT) {
+        const waitMessage = document.getElementById('wait-message-2');
+        if (waitMessage) {
+            waitMessage.remove(); // 待機メッセージを削除
+        }
     }
     
     el.innerHTML = `<div style="
@@ -61,21 +66,25 @@ function clearScannerArea(scannerId) {
  * カメラの起動（ビデオ/キャンバス要素の作成とストリームの取得）
  * 両方とも表示 (isHidden=false) で起動する
  */
-async function setupCamera(scannerId, stateKey, isHidden = false) {
+async function setupCamera(scannerId, stateKey) {
     const container = document.getElementById(scannerId);
     
-    // 既存のコンテンツをクリア
-    container.innerHTML = ''; 
+    // 1回目エリアは既存のコンテンツをクリア
+    if (scannerId === SCANNER_ID_LEFT) {
+        container.innerHTML = ''; 
+    } else {
+        // 2回目エリアは、待機メッセージを残したままにする
+    }
     
     const video = document.createElement('video');
-    video.style.display = 'block'; // 常に表示
+    video.style.display = 'block'; 
     video.setAttribute('playsinline', true);
     video.style.maxWidth = '100%'; 
     
     const canvas = document.createElement('canvas');
     canvas.style.display = 'none';
     
-    // 要素をDOMに追加
+    // 要素をDOMに追加 (2回目エリアの場合、待機メッセージの下に来る)
     container.appendChild(video);
     container.appendChild(canvas);
 
@@ -151,7 +160,6 @@ function tick(stateKey, onReadSuccess) {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     
     // 読み取りモードの場合のみ解析を実行
-    // stateKeyとcurrentをチェックして、対応するスキャナーのみ解析を行う
     if (current === 'scanning_1' && stateKey === 'left' || current === 'scanning_2' && stateKey === 'right') {
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
@@ -175,11 +183,11 @@ function tick(stateKey, onReadSuccess) {
  */
 async function startBothCams() {
     try {
-        // ✅ 1回目と2回目カメラを両方セットアップ (表示)
+        // 1回目と2回目カメラを両方セットアップ (表示)
         await setupCamera(SCANNER_ID_LEFT, 'left');
         await setupCamera(SCANNER_ID_RIGHT, 'right'); 
         
-        state.current = 'ready'; // 起動完了、読み取り待ち
+        state.current = 'ready'; 
         
         // 両方のカメラのプレビューtickを開始（解析はしない）
         tick('left', (qr) => { /* コールバックはstartLeftScanで上書きされる */ }); 
@@ -189,8 +197,16 @@ async function startBothCams() {
         btnStart1.textContent = "QR読み取り開始 (1回目)";
         btnStart1.disabled = false;
         
-        // 2回目ボタンは1回目完了まで非表示
-        btnStart2.style.display = "none";
+        // 2回目ボタンはロック状態にする
+        btnStart2.style.display = "block"; 
+        btnStart2.disabled = true; 
+        btnStart2.textContent = "📷 2回目読み取り開始";
+
+        // ✅ 2回目エリアのカメラ映像を初期状態で非表示にする (待機メッセージが見えるように)
+        state.right.video.style.display = 'none';
+        const rightAimer = document.getElementById(SCANNER_ID_RIGHT).querySelector('.aimer');
+        if (rightAimer) rightAimer.style.display = 'none';
+
 
     } catch (e) {
         console.error("両カメラ起動エラー:", e);
@@ -206,23 +222,34 @@ async function startBothCams() {
  */
 function startLeftScan() {
     resultBox.textContent = "1回目読み取り中...枠を動かさないでください。";
-    state.current = 'scanning_1'; // 1回目カメラの解析を有効化
+    state.current = 'scanning_1'; 
 
     const onReadSuccess = (qr) => {
         dqr = qr;
-        stopTick('left'); // 1回目の解析を停止
+        stopTick('left'); 
         
         displayQrText(SCANNER_ID_LEFT, dqr); 
+        
+        // ✅ 修正点: 2回目エリアの待機メッセージを削除し、カメラ映像を表示させる
+        const waitMessage = document.getElementById('wait-message-2');
+        if (waitMessage) {
+             waitMessage.remove(); // 要素を削除
+        }
+        
+        // 2回目カメラの映像とエイマーを有効化
+        if (state.right.video) state.right.video.style.display = 'block';
+        const rightAimer = document.getElementById(SCANNER_ID_RIGHT).querySelector('.aimer');
+        if (rightAimer) rightAimer.style.display = 'block';
+
         resultBox.textContent = "1回目QR読み取り完了。2回目読み取り開始ボタンを押してください。";
         
         // UIを2回目用に切り替え
         btnStart1.style.display = "none";
         btnStart2.style.display = "block";
-        state.current = 'ready'; // 読み取り待ちの状態に戻す
+        state.current = 'ready'; 
         btnStart2.disabled = false; 
     };
     
-    // 既存のtickを停止し、新しいコールバックを持つtickを開始
     stopTick('left'); 
     state.left.requestId = requestAnimationFrame(() => tick('left', onReadSuccess));
 }
@@ -233,17 +260,16 @@ function startLeftScan() {
  */
 function startRightScan() {
     resultBox.textContent = "2回目読み取り中...枠を動かさないでください。";
-    state.current = 'scanning_2'; // 2回目カメラの解析を有効化
+    state.current = 'scanning_2'; 
 
     const onReadSuccess = (qr) => {
         productqr = qr;
-        stopTick('right'); // 2回目の解析を停止
+        stopTick('right'); 
 
         displayQrText(SCANNER_ID_RIGHT, productqr);
         checkMatch();
     };
     
-    // 既存のtickを停止し、新しいコールバックを持つtickを開始
     stopTick('right');
     state.right.requestId = requestAnimationFrame(() => tick('right', onReadSuccess));
 }
@@ -281,7 +307,7 @@ function resetApp() {
     dqr = null;
     productqr = null;
     
-    stopAllCameras(); // すべてのカメラリソースを解放
+    stopAllCameras(); 
 
     resultBox.textContent = "QRをスキャンしてください";
     resultBox.className = "";
@@ -291,13 +317,12 @@ function resetApp() {
     btnStart1.disabled = true; 
     btnStart1.textContent = "カメラ起動中...";
     
-    btnStart2.style.display = "none";
+    btnStart2.style.display = "none"; // 起動後 startBothCams で表示される
     btnStart2.disabled = true;
     btnStart2.textContent = "📷 2回目読み取り開始";
     
     state.current = "ready";
 
-    // ページロード後、DOMリセット後に自動で両カメラの起動を開始
     setTimeout(() => {
         startBothCams(); 
     }, 100); 
@@ -310,7 +335,7 @@ function resetApp() {
 btnStart1.addEventListener("click", () => {
     btnStart1.disabled = true;
     if (state.current === 'ready') {
-        startLeftScan(); // 読み取り開始
+        startLeftScan(); 
     }
 });
 
@@ -318,7 +343,7 @@ btnStart1.addEventListener("click", () => {
 btnStart2.addEventListener("click", () => {
     btnStart2.disabled = true;
     if (state.current === 'ready') {
-        startRightScan(); // 読み取り開始
+        startRightScan(); 
     } else {
         btnStart2.disabled = false;
     }
