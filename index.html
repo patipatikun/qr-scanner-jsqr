@@ -32,7 +32,7 @@
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      position: relative; /* 内部の絶対配置要素のため */
+      position: relative; 
     }
     /* スキャナー表示エリア (動画/文字が入る場所) */
     #scanner-dqr, #scanner-productqr {
@@ -46,30 +46,11 @@
     }
     
     /* video, canvasをコンテナ内で制御 */
-    /* 2ストリーム方式では、ここで各ビデオ・キャンバスの表示/非表示を制御する */
     #scanner-dqr > *, #scanner-productqr > * {
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
     }
-    
-    /* 2回目のスキャナーエリアに、初期状態で「待機中」の表示を追加 */
-    #scanner-productqr::after {
-        content: "1回目スキャン完了後に表示";
-        position: absolute;
-        color: #999;
-        font-size: 1.2em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        background-color: #eee;
-        z-index: 5;
-    }
-    /* 2回目カメラが有効になったらこの疑似要素を非表示にするスタイルも、JSで制御します */
 
     /* 照準枠のスタイル */
     .aimer {
@@ -150,7 +131,19 @@
     
     <div class="scanner" id="container-2">
       <h3>出荷時QR（2回目）</h3>
-      <div id="scanner-productqr"></div>
+      <div id="scanner-productqr">
+        <div id="wait-message-2" style="
+            position: absolute;
+            width: 100%; height: 100%;
+            background-color: #eee;
+            color: #999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            z-index: 5;
+        ">1回目スキャン後に表示されます</div>
+      </div>
       <button id="start-scan-2" style="display:none;">📷 2回目読み取り開始</button>
     </div>
     
