@@ -3,7 +3,7 @@ let productqr = null;
 
 const SCANNER_ID_LEFT = "scanner-dqr";
 const SCANNER_ID_RIGHT = "scanner-productqr";
-const MAX_TEXT_LENGTH = 8; 
+const MAX_TEXT_LENGTH = 20; 
 
 const resultBox = document.getElementById("result");
 const btnStart1 = document.getElementById("start-scan-1");
@@ -280,7 +280,7 @@ function checkMatch() {
     resultBox.className = "";
 
     if (dqr && productqr) {
-        fetch("https://script.google.com/macros/s/AKfycbzAfRJoFs9hy0-jw8GcY0egwmjA9dlE6WSXCVdMOiJcs44DnBPHpGmFaEw6FD_ZyVE-LA/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbyf-ennOCsvr997hAWKl0VjJvtzCOpKPzsRdp3_7R-KfT9VpedpppRJnEoROD1k3KEE1w/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `dp=${encodeURIComponent(dqr)}&productQr=${encodeURIComponent(productqr)}`
