@@ -16,13 +16,14 @@
       color: white;
       padding: 10px;
     }
-    /* スキャナーを横並びにする Flexbox コンテナ */
+    /* PC: スキャナーを横並びにする Flexbox コンテナ */
     .scanner-container {
       display: flex;
       justify-content: space-around;
       flex-wrap: wrap;
       margin: 20px 0;
     }
+    /* スキャナー + ボタンのコンテナ */
     .scanner {
       width: 45%;
       min-width: 300px;
@@ -31,8 +32,9 @@
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      /* ボタンを配置するため、パディングを調整 */
     }
-    /* スキャナー表示エリア */
+    /* スキャナー表示エリア (動画/文字が入る場所) */
     #scanner-dqr, #scanner-productqr {
       min-height: 250px; 
       display: flex;
@@ -40,6 +42,7 @@
       align-items: center;
       overflow: hidden;
       position: relative;
+      margin-bottom: 10px; /* ボタンとの間にスペース */
     }
     
     /* video, canvasをコンテナ内で制御 */
@@ -55,12 +58,12 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        border: 2px dashed red; /* 赤い破線枠 */
+        border: 2px dashed red; 
         box-sizing: border-box;
         z-index: 10;
     }
 
-    /* 結果とボタンのスタイル */
+    /* 結果表示エリア */
     #result {
       font-size: 1.5em;
       margin-top: 20px;
@@ -84,42 +87,35 @@
       border: 1px solid #D32F2F;
     }
 
+    /* ボタンの共通スタイル */
     button {
       padding: 12px 25px;
       font-size: 1.2em;
-      margin: 10px;
+      margin: 5px; /* スキャナー直下にあるためマージンを減らす */
       cursor: pointer;
       border: none;
       border-radius: 5px;
       color: white;
       background-color: #007bff;
       transition: background-color 0.3s;
+      width: calc(100% - 10px); /* スキャナー内の幅いっぱい */
     }
     button:disabled {
       background-color: #cccccc;
       cursor: not-allowed;
     }
     
-    /* ボタンエリアを横並びにする (flex-wrap: wrap はモバイル対応) */
-    #button-area {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap; 
-    }
-
-    /* モバイル対応 */
+    /* モバイル対応 (縦並びとボタン拡大) */
     @media (max-width: 650px) {
-      .scanner {
-        width: 90%;
-      }
       .scanner-container {
-        flex-direction: column;
+        flex-direction: column; /* スキャナーエリアを強制的に縦並び */
         align-items: center;
       }
-      button {
-        width: 90%;
-        margin-bottom: 15px;
+      .scanner {
+        width: 90%; /* スマホ画面の90%を使用 */
+        min-width: unset;
       }
+      /* ボタンは既に 100% 幅になっているため、個別調整不要 */
     }
   </style>
 </head>
@@ -127,23 +123,22 @@
   <h1>📦 QR照合UI</h1>
 
   <div class="scanner-container">
-    <div class="scanner">
+    
+    <div class="scanner" id="container-1">
       <h3>製品貼付QR（1回目）</h3>
       <div id="scanner-dqr"></div>
+      <button id="start-scan-1" style="display:block;">📷 1回目カメラ起動</button>
     </div>
-    <div class="scanner">
+    
+    <div class="scanner" id="container-2">
       <h3>出荷時QR（2回目）</h3>
       <div id="scanner-productqr"></div>
+      <button id="start-scan-2" style="display:none;">📷 2回目カメラ起動</button>
     </div>
-  </div>
-
-  <div id="button-area">
-    <button id="start-scan-1">📷 1回目カメラ起動</button>
-    <button id="start-scan-2" style="display:none;">📷 2回目カメラ起動</button>
+    
   </div>
 
   <div id="result">QRをスキャンしてください</div>
-
 
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script src="main.js"></script>
