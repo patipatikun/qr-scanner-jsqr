@@ -27,7 +27,6 @@ function displayQrText(scannerId, text) {
     const el = document.getElementById(scannerId);
     let displayText = text;
     
-    // 8文字に制限する
     if (displayText.length > MAX_TEXT_LENGTH) {
         displayText = displayText.substring(0, MAX_TEXT_LENGTH) + '...'; 
     }
@@ -66,7 +65,7 @@ async function setupCamera(scannerId, stateKey) {
     container.appendChild(video);
     
     const canvas = document.createElement('canvas');
-    canvas.style.display = 'none'; // キャンバスは非表示
+    canvas.style.display = 'none';
     container.appendChild(canvas);
     
     // 照準枠の作成
@@ -86,7 +85,7 @@ async function setupCamera(scannerId, stateKey) {
         state[stateKey].canvas = canvas;
 
         video.srcObject = stream;
-        video.play();
+        await video.play(); // 確実に再生が始まるのを待つ
         
         return { video, canvas, stream };
 
@@ -107,7 +106,7 @@ function stopCamera(stateKey) {
     }
     
     if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(track => track.stop()); // カメラリソースを解放
     }
     
     state[stateKey].stream = null;
@@ -131,7 +130,6 @@ function tick(stateKey, onReadSuccess) {
 
     const { current } = state;
     
-    // キャンバスサイズを映像に合わせる
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
@@ -151,7 +149,6 @@ function tick(stateKey, onReadSuccess) {
         }
     }
     
-    // 次のフレームをリクエスト
     state[stateKey].requestId = requestAnimationFrame(() => tick(stateKey, onReadSuccess));
 }
 
@@ -165,16 +162,17 @@ async function startLeftPreview() {
     try {
         await setupCamera(SCANNER_ID_LEFT, 'left');
         state.current = 'previewing_1';
-        tick('left', (qr) => { /* コールバックはstartLeftScanで上書きされる */ }); 
+        tick('left', (qr) => { /* 読み取り時のコールバックは後で設定 */ }); 
         
-        resultBox.textContent = "1回目カメラ起動完了。枠内にQRコードを合わせ、ボタンを再度押して読み取り開始。";
+        // プレビュー開始後はボタンを「読み取り開始」にする
+        resultBox.textContent = "枠内にQRコードを合わせ、ボタンを押して読み取り開始。";
         btnStart1.textContent = "QR読み取り開始 (1回目)";
-        btnStart1.disabled = false; // ボタンを有効化
+        btnStart1.disabled = false; // ボタンを有効化 (読み取り待機状態へ)
 
     } catch (e) {
         resultBox.textContent = "エラー: カメラ起動失敗。カメラ権限を確認してください。";
         btnStart1.disabled = false;
-        resetApp();
+        btnStart1.textContent = "📷 1回目カメラ起動リトライ";
     }
 }
 
@@ -190,15 +188,14 @@ function startLeftScan() {
         stopCamera('left'); 
         
         displayQrText(SCANNER_ID_LEFT, dqr); 
-        resultBox.textContent = "1回目QR読み取り完了。2回目カメラ起動ボタンを押してください。";
+        resultBox.textContent = "1回目QR読み取り完了。2回目読み取り開始ボタンを押してください。";
         
         // UIを2回目用に切り替え
         btnStart1.style.display = "none";
         btnStart2.style.display = "block";
-        btnStart2.disabled = false;
+        btnStart2.disabled = false; // 2回目カメラ起動の準備完了
     };
     
-    // 読み取り成功時のコールバックを渡す
     state.left.requestId = requestAnimationFrame(() => tick('left', onReadSuccess));
 }
 
@@ -207,19 +204,22 @@ function startLeftScan() {
  * 2回目のカメラ起動（プレビュー開始）
  */
 async function startRightPreview() {
+    stopCamera('left'); // 念のため1回目カメラを停止
+
     try {
         await setupCamera(SCANNER_ID_RIGHT, 'right');
         state.current = 'previewing_2';
-        tick('right', (qr) => { /* コールバックはstartRightScanで上書きされる */ });
+        tick('right', (qr) => { /* 読み取り時のコールバックは後で設定 */ });
         
         resultBox.textContent = "2回目カメラ起動完了。枠内にQRコードを合わせ、ボタンを再度押して読み取り開始。";
         btnStart2.textContent = "QR読み取り開始 (2回目)";
         btnStart2.disabled = false; // ボタンを有効化
 
     } catch (e) {
-        resultBox.textContent = "エラー: 2回目カメラ起動失敗。";
+        console.error("2回目カメラ起動失敗:", e);
+        resultBox.textContent = "エラー: 2回目カメラ起動失敗。リセットします。";
         btnStart2.disabled = false;
-        resetApp();
+        resetApp(); // エラー時はリセット
     }
 }
 
@@ -286,44 +286,48 @@ function resetApp() {
     clearScannerArea(SCANNER_ID_LEFT);
     clearScannerArea(SCANNER_ID_RIGHT);
     
-    // ボタンの初期状態を再設定
+    // UIを初期状態に戻す
     btnStart1.style.display = "block";
-    btnStart1.disabled = false;
-    btnStart1.textContent = "📷 1回目カメラ起動";
+    btnStart1.disabled = true; // 起動するまで無効
+    btnStart1.textContent = "カメラ起動中...";
     
     btnStart2.style.display = "none";
     btnStart2.disabled = true;
-    btnStart2.textContent = "📷 2回目カメラ起動";
+    btnStart2.textContent = "📷 2回目読み取り開始";
     
     state.current = "ready";
+
+    // ページロード後、DOMリセット後に自動で1回目プレビューを開始
+    setTimeout(() => {
+        startLeftPreview(); 
+    }, 100); 
 }
 
 
 // --- イベントリスナーの設定 ---
 
-// 1回目スキャン開始/再開ボタン
+// 1回目スキャン開始/再開ボタン (読み取り開始機能のみ)
 btnStart1.addEventListener("click", () => {
     btnStart1.disabled = true;
-    if (state.current === 'ready') {
-        // 1. 初回クリック: カメラ起動（プレビュー開始）
-        startLeftPreview();
-    } else if (state.current === 'previewing_1') {
-        // 2. 2回目クリック: 読み取り開始
+    // 状態が 'previewing_1' の場合のみ読み取りを開始
+    if (state.current === 'previewing_1') {
         startLeftScan();
     }
+    // 'ready' の状態は自動起動されるため、ここでは処理しない
 });
 
 // 2回目スキャン開始/再開ボタン
 btnStart2.addEventListener("click", () => {
     btnStart2.disabled = true;
     if (state.current === 'previewing_1') {
-        // 1. 1回目完了後のクリック: カメラ起動（プレビュー開始）
+        // 1回目完了後: カメラ起動（プレビュー開始）
         startRightPreview();
     } else if (state.current === 'previewing_2') {
-        // 2. 2回目カメラ起動後のクリック: 読み取り開始
+        // 2回目プレビュー中: 読み取り開始
         startRightScan();
     }
 });
 
 // アプリケーションの初回起動
+// ページロード時に自動で resetApp -> startLeftPreview が実行される
 resetApp();
