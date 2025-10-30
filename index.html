@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR照合UI</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f4f4f4;
+      padding-bottom: 50px;
+    }
+    h1 {
+      background: #333;
+      color: white;
+      padding: 10px;
+    }
+    .scanner-container {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .scanner {
+      width: 45%;
+      min-width: 300px;
+      margin-bottom: 20px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    /* スキャナー表示エリア */
+    #scanner-dqr, #scanner-productqr {
+      /* カメラの映像とキャンバスがここに入ります */
+      min-height: 250px; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* video, canvasをコンテナ内で制御 */
+    #scanner-dqr > *, #scanner-productqr > * {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* 結果とボタンのスタイル */
+    #result {
+      font-size: 1.5em;
+      margin-top: 20px;
+      padding: 10px;
+      background: #fff;
+      border-radius: 8px;
+      display: block; 
+      width: 80%;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      transition: background-color 0.3s;
+    }
+    .ok { 
+      color: white; 
+      background: #4CAF50 !important; 
+      border: 1px solid #388E3C;
+    } 
+    .ng { 
+      color: white; 
+      background: #F44336 !important; 
+      border: 1px solid #D32F2F;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 1.2em;
+      margin: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      background-color: #007bff;
+      transition: background-color 0.3s;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    
+    /* 照準枠のスタイル */
+    .aimer {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: 2px dashed red; /* 照準枠の色 */
+        box-sizing: border-box;
+        z-index: 10;
+    }
+
+    /* モバイル対応 */
+    @media (max-width: 650px) {
+      .scanner {
+        width: 90%;
+      }
+      .scanner-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      button {
+        width: 90%;
+        margin-bottom: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>📦 QR照合UI</h1>
+
+  <div class="scanner-container">
+    <div class="scanner">
+      <h3>製品貼付QR（1回目）</h3>
+      <div id="scanner-dqr"></div>
+    </div>
+    <div class="scanner">
+      <h3>出荷時QR（2回目）</h3>
+      <div id="scanner-productqr"></div>
+    </div>
+  </div>
+
+  <button id="start-scan-1">📷 1回目カメラ起動</button>
+  <button id="start-scan-2" style="display:none;">📷 2回目カメラ起動</button>
+
+  <div id="result">QRをスキャンしてください</div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
