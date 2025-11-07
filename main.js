@@ -6,7 +6,7 @@ let productqr = null;
 
 const SCANNER_ID_LEFT = "scanner-dqr";
 const SCANNER_ID_RIGHT = "scanner-productqr";
-const MAX_TEXT_LENGTH = 30; 
+const MAX_TEXT_LENGTH = 50; 
 
 const resultBox = document.getElementById("result");
 const btnStart1 = document.getElementById("start-scan-1");
@@ -260,7 +260,7 @@ function checkMatch() {
 
     if (dqr && productqr) {
         // ⭐ ここに、GASのAPIエンドポイントURLを貼り付けました ⭐
-        fetch("https://script.google.com/macros/s/AKfycbwFQ7cIaGJpjkm1mHADySUy31jj7cva-ckrmOFcBl982zViJ2f_ICdOhCaOzC1jutCbbg/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbzj38iuxCocEsd0IV0tBPOKfGo_NuKuuruEAQ2BUJKtd2WNrFhYCVbQ75G34mFdfzeu/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `dp=${encodeURIComponent(dqr)}&productQr=${encodeURIComponent(productqr)}`
