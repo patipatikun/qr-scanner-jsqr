@@ -260,7 +260,7 @@ function checkMatch() {
 
     if (dqr && productqr) {
         // ⭐ ここに、GASのAPIエンドポイントURLを貼り付けました ⭐
-        fetch("https://script.google.com/macros/s/AKfycbyCJLW_fRrT51qfS00MW-Sh0iu7dejlnle3jjCwqY2NAVZyBJcTh6ov6TfOyIEFIyVBgA/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbzlGBEeV3QBsshlx62Upldf6aqNouqraDrws7Aw_wuxBokv09nbglwmhMkTt-co2xerWg/exec", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: `dp=${encodeURIComponent(dqr)}&productQr=${encodeURIComponent(productqr)}`
