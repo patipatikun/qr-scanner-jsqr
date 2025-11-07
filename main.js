@@ -6,7 +6,7 @@ let productqr = null;
 
 const SCANNER_ID_LEFT = "scanner-dqr";
 const SCANNER_ID_RIGHT = "scanner-productqr";
-const MAX_TEXT_LENGTH = 8; 
+const MAX_TEXT_LENGTH = 30; 
 
 const resultBox = document.getElementById("result");
 const btnStart1 = document.getElementById("start-scan-1");
